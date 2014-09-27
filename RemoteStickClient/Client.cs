@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using vJoyInterfaceWrap;
+using WindowsInput;
 
 namespace RemoteStickClient
 {
@@ -35,6 +38,7 @@ namespace RemoteStickClient
         private int port = DEFAULT_PORT;
         private int serverTimeout = DEFAULT_SERVER_TIMEOUT;
         private int updateRate = -1;
+        private VirtualKeyCode[] downKeys = new VirtualKeyCode[0];
 
         public Client(vJoy joystick, uint id)
         {
@@ -128,14 +132,12 @@ namespace RemoteStickClient
                             {
                                 string[] messageParts = message.Split(PROTOCOL_MESSAGE_DELIMITER);
 
-                                if (messageParts.Length == 9 + nButtons + 1)
-                                {
+                                /*if (messageParts.Length >= 9 + nButtons + 1)
+                                {*/
                                     long newCounter = long.Parse(messageParts[1]);
 
                                     if (newCounter > counter)
                                     {
-
-
                                         int axisX = int.Parse(messageParts[2]);
                                         int axisY = int.Parse(messageParts[3]);
                                         int axisZ = int.Parse(messageParts[4]);
@@ -160,13 +162,30 @@ namespace RemoteStickClient
                                             joystick.SetBtn(button, id, i);
                                         }
 
+                                        int nKeys = int.Parse(messageParts[10 + nButtons]);
+                                        VirtualKeyCode[] newDownKeys = new VirtualKeyCode[nKeys];
+
+                                        for (int i = 0; i < nKeys; i++)
+                                        {
+                                            string keyCodeString = messageParts[11 + nButtons + i];
+                                            VirtualKeyCode keyCode = (VirtualKeyCode) Enum.Parse(typeof(VirtualKeyCode), keyCodeString, true);
+                                            newDownKeys[i] = keyCode;
+                                            InputSimulator.SimulateKeyDown(keyCode);
+                                        }
+
+                                        IEnumerable<VirtualKeyCode> upKeys = newDownKeys.Except(downKeys);
+                                        foreach (VirtualKeyCode k in upKeys)
+                                            InputSimulator.SimulateKeyUp(k);
+
+                                        downKeys = newDownKeys;
+
                                         counter = newCounter;
                                     }
                                     else
                                         Console.WriteLine("Received old packet - ignoring!");
-                                }
+                                /*}
                                 else
-                                    Console.WriteLine("Received invalid packet - ignoring!");
+                                    Console.WriteLine("Received invalid packet - ignoring!");*/
                             }
 
                             if (message.StartsWith(PROTOCOL_MESSAGE_UPDATE_REQUEST_ALIVE))
