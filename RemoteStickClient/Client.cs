@@ -162,15 +162,33 @@ namespace RemoteStickClient
                                             joystick.SetBtn(button, id, i);
                                         }
 
-                                        int nKeys = int.Parse(messageParts[10 + nButtons]);
+                                        Mouse.POINT p;
+                                        if (Mouse.GetCursorPos(out p))
+                                        {
+                                            int cursorX = int.Parse(messageParts[10 + nButtons]);
+                                            int cursorY = int.Parse(messageParts[11 + nButtons]);
+
+                                            //Console.WriteLine("X: {0}\nY: {1}", cursorX, cursorY);
+
+                                            Mouse.SetCursorPos(p.x + cursorX, p.y + cursorY);
+                                        }
+
+                                        int nKeys = int.Parse(messageParts[12 + nButtons]);
                                         VirtualKeyCode[] newDownKeys = new VirtualKeyCode[nKeys];
 
                                         for (int i = 0; i < nKeys; i++)
                                         {
-                                            string keyCodeString = messageParts[11 + nButtons + i];
-                                            VirtualKeyCode keyCode = (VirtualKeyCode) Enum.Parse(typeof(VirtualKeyCode), keyCodeString, true);
-                                            newDownKeys[i] = keyCode;
-                                            InputSimulator.SimulateKeyDown(keyCode);
+                                            string keyCodeString = messageParts[13 + nButtons + i];
+                                            try
+                                            {
+                                                VirtualKeyCode keyCode = (VirtualKeyCode)Enum.Parse(typeof(VirtualKeyCode), keyCodeString, true);
+                                                newDownKeys[i] = keyCode;
+                                                InputSimulator.SimulateKeyDown(keyCode);
+                                            }
+                                            catch (ArgumentException e)
+                                            {
+                                                Console.WriteLine(e.ToString());
+                                            }
                                         }
 
                                         IEnumerable<VirtualKeyCode> upKeys = newDownKeys.Except(downKeys);
