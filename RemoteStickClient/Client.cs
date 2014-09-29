@@ -166,15 +166,17 @@ namespace RemoteStickClient
 
                                         int cursorX = int.Parse(messageParts[10 + nButtons]);
                                         int cursorY = int.Parse(messageParts[11 + nButtons]);
-
                                         inputSimulator.Mouse.MoveMouseBy(cursorX, cursorY);
 
-                                        int nDownKeyCodes = int.Parse(messageParts[12 + nButtons]);
+                                        int scrollClicks = int.Parse(messageParts[12 + nButtons]);
+                                        inputSimulator.Mouse.VerticalScroll(scrollClicks);
+
+                                        int nDownKeyCodes = int.Parse(messageParts[13 + nButtons]);
                                         VirtualKeyCode[] newDownKeyCodes = new VirtualKeyCode[nDownKeyCodes];
 
                                         for (int i = 0; i < nDownKeyCodes; i++)
                                         {
-                                            string keyCodeString = messageParts[13 + nButtons + i];
+                                            string keyCodeString = messageParts[14 + nButtons + i];
                                             try
                                             {
                                                 VirtualKeyCode keyCode = (VirtualKeyCode)Enum.Parse(typeof(VirtualKeyCode), keyCodeString, true);
@@ -224,14 +226,14 @@ namespace RemoteStickClient
 
                                         downKeyCodes = newDownKeyCodes;
 
-                                        int nDownUpKeyStrokes = int.Parse(messageParts[13 + nButtons + nDownKeyCodes]);
+                                        int nDownUpKeyStrokes = int.Parse(messageParts[14 + nButtons + nDownKeyCodes]);
                                         for (int i = 0; i < nDownUpKeyStrokes; i++)
                                         {
-                                            int nDownUpModifierCodes = int.Parse(messageParts[14 + nButtons + nDownKeyCodes + i]);
+                                            int nDownUpModifierCodes = int.Parse(messageParts[15 + nButtons + nDownKeyCodes + i]);
                                             VirtualKeyCode[] modifierCodes = new VirtualKeyCode[nDownUpModifierCodes];
                                             for (int j = 0; j < nDownUpModifierCodes; j++)
                                             {
-                                                string modifierCodeString = messageParts[15 + nButtons + nDownKeyCodes + i + j];
+                                                string modifierCodeString = messageParts[16 + nButtons + nDownKeyCodes + i + j];
                                                 try
                                                 {
                                                     modifierCodes[j] = (VirtualKeyCode)Enum.Parse(typeof(VirtualKeyCode), modifierCodeString, true);
@@ -243,11 +245,11 @@ namespace RemoteStickClient
                                                 }
                                             }
 
-                                            int nDownUpKeyCodes = int.Parse(messageParts[15 + nButtons + nDownKeyCodes + nDownUpModifierCodes + i]);
+                                            int nDownUpKeyCodes = int.Parse(messageParts[16 + nButtons + nDownKeyCodes + nDownUpModifierCodes + i]);
                                             VirtualKeyCode[] keyCodes = new VirtualKeyCode[nDownUpKeyCodes];
                                             for (int j = 0; j < nDownUpKeyCodes; j++)
                                             {
-                                                string keyCodeString = messageParts[16 + nButtons + nDownKeyCodes + nDownUpModifierCodes + i + j];
+                                                string keyCodeString = messageParts[17 + nButtons + nDownKeyCodes + nDownUpModifierCodes + i + j];
                                                 try
                                                 {
                                                     keyCodes[j] = (VirtualKeyCode)Enum.Parse(typeof(VirtualKeyCode), keyCodeString, true);
