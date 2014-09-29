@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using vJoyInterfaceWrap;
 using WindowsInput;
+using WindowsInput.Native;
 
 namespace RemoteStickClient
 {
@@ -34,11 +35,12 @@ namespace RemoteStickClient
         private uint id;
         private ClientState clientState = ClientState.Connecting;
         private volatile bool run = true;
-        private String address = "172.16.48.1";
+        private String address = "192.168.0.108";
         private int port = DEFAULT_PORT;
         private int serverTimeout = DEFAULT_SERVER_TIMEOUT;
         private int updateRate = -1;
-        private VirtualKeyCode[] downKeys = new VirtualKeyCode[0];
+        private InputSimulator inputSimulator = new InputSimulator();
+        private VirtualKeyCode[] downKeyCodes = new VirtualKeyCode[0];
 
         public Client(vJoy joystick, uint id)
         {
@@ -57,7 +59,7 @@ namespace RemoteStickClient
                         udpClient.Connect(address, port);
 
 
-                IPEndPoint ipEndPoint = new IPEndPoint(IPAddress.Any, 0);
+                IPEndPoint ipEndPoint = new IPEndPoint(IPAddress.Any, port);
                 Byte[] sendBytes, receiveBytes;
                 string message;
                 long counter = -1;
@@ -162,28 +164,37 @@ namespace RemoteStickClient
                                             joystick.SetBtn(button, id, i);
                                         }
 
-                                        Mouse.POINT p;
-                                        if (Mouse.GetCursorPos(out p))
-                                        {
-                                            int cursorX = int.Parse(messageParts[10 + nButtons]);
-                                            int cursorY = int.Parse(messageParts[11 + nButtons]);
+                                        int cursorX = int.Parse(messageParts[10 + nButtons]);
+                                        int cursorY = int.Parse(messageParts[11 + nButtons]);
 
-                                            //Console.WriteLine("X: {0}\nY: {1}", cursorX, cursorY);
+                                        inputSimulator.Mouse.MoveMouseBy(cursorX, cursorY);
 
-                                            Mouse.SetCursorPos(p.x + cursorX, p.y + cursorY);
-                                        }
+                                        int nDownKeyCodes = int.Parse(messageParts[12 + nButtons]);
+                                        VirtualKeyCode[] newDownKeyCodes = new VirtualKeyCode[nDownKeyCodes];
 
-                                        int nKeys = int.Parse(messageParts[12 + nButtons]);
-                                        VirtualKeyCode[] newDownKeys = new VirtualKeyCode[nKeys];
-
-                                        for (int i = 0; i < nKeys; i++)
+                                        for (int i = 0; i < nDownKeyCodes; i++)
                                         {
                                             string keyCodeString = messageParts[13 + nButtons + i];
                                             try
                                             {
                                                 VirtualKeyCode keyCode = (VirtualKeyCode)Enum.Parse(typeof(VirtualKeyCode), keyCodeString, true);
-                                                newDownKeys[i] = keyCode;
-                                                InputSimulator.SimulateKeyDown(keyCode);
+                                                if (!inputSimulator.InputDeviceState.IsKeyDown(keyCode))
+                                                {
+                                                    switch(keyCode)
+                                                    {
+                                                        case VirtualKeyCode.LBUTTON:
+                                                            inputSimulator.Mouse.LeftButtonDown();
+                                                            break;
+                                                        case VirtualKeyCode.RBUTTON:
+                                                            inputSimulator.Mouse.RightButtonDown();
+                                                            break;
+                                                        default:
+                                                            inputSimulator.Keyboard.KeyDown(keyCode);
+                                                            break;
+                                                    }
+                                                }
+
+                                                newDownKeyCodes[i] = keyCode;
                                             }
                                             catch (ArgumentException e)
                                             {
@@ -191,11 +202,65 @@ namespace RemoteStickClient
                                             }
                                         }
 
-                                        IEnumerable<VirtualKeyCode> upKeys = newDownKeys.Except(downKeys);
-                                        foreach (VirtualKeyCode k in upKeys)
-                                            InputSimulator.SimulateKeyUp(k);
+                                        IEnumerable<VirtualKeyCode> upKeyCodes = downKeyCodes.Except(newDownKeyCodes);
+                                        foreach (VirtualKeyCode k in upKeyCodes)
+                                        {
+                                            if (inputSimulator.InputDeviceState.IsKeyDown(k))
+                                            {
+                                                switch (k)
+                                                {
+                                                    case VirtualKeyCode.LBUTTON:
+                                                        inputSimulator.Mouse.LeftButtonUp();
+                                                        break;
+                                                    case VirtualKeyCode.RBUTTON:
+                                                        inputSimulator.Mouse.RightButtonUp();
+                                                        break;
+                                                    default:
+                                                        inputSimulator.Keyboard.KeyUp(k);
+                                                        break;
+                                                }
+                                            }
+                                        }
 
-                                        downKeys = newDownKeys;
+                                        downKeyCodes = newDownKeyCodes;
+
+                                        int nDownUpKeyStrokes = int.Parse(messageParts[13 + nButtons + nDownKeyCodes]);
+                                        for (int i = 0; i < nDownUpKeyStrokes; i++)
+                                        {
+                                            int nDownUpModifierCodes = int.Parse(messageParts[14 + nButtons + nDownKeyCodes + i]);
+                                            VirtualKeyCode[] modifierCodes = new VirtualKeyCode[nDownUpModifierCodes];
+                                            for (int j = 0; j < nDownUpModifierCodes; j++)
+                                            {
+                                                string modifierCodeString = messageParts[15 + nButtons + nDownKeyCodes + i + j];
+                                                try
+                                                {
+                                                    modifierCodes[j] = (VirtualKeyCode)Enum.Parse(typeof(VirtualKeyCode), modifierCodeString, true);
+                                                }
+                                                catch (ArgumentException e)
+                                                {
+                                                    modifierCodes[j] = 0;
+                                                    Console.WriteLine(e.ToString());
+                                                }
+                                            }
+
+                                            int nDownUpKeyCodes = int.Parse(messageParts[15 + nButtons + nDownKeyCodes + nDownUpModifierCodes + i]);
+                                            VirtualKeyCode[] keyCodes = new VirtualKeyCode[nDownUpKeyCodes];
+                                            for (int j = 0; j < nDownUpKeyCodes; j++)
+                                            {
+                                                string keyCodeString = messageParts[16 + nButtons + nDownKeyCodes + nDownUpModifierCodes + i + j];
+                                                try
+                                                {
+                                                    keyCodes[j] = (VirtualKeyCode)Enum.Parse(typeof(VirtualKeyCode), keyCodeString, true);
+                                                }
+                                                catch (ArgumentException e)
+                                                {
+                                                    keyCodes[j] = 0;
+                                                    Console.WriteLine(e.ToString());
+                                                }
+                                            }
+
+                                            inputSimulator.Keyboard.ModifiedKeyStroke(modifierCodes, keyCodes);
+                                        }
 
                                         counter = newCounter;
                                     }
@@ -208,7 +273,7 @@ namespace RemoteStickClient
 
                             if (message.StartsWith(PROTOCOL_MESSAGE_UPDATE_REQUEST_ALIVE))
                             {
-                                Console.WriteLine("Sending CLIENT_ALIVE...");
+                                //Console.WriteLine("Sending CLIENT_ALIVE...");
                                 sendBytes = Encoding.ASCII.GetBytes(PROTOCOL_MESSAGE_CLIENT_ALIVE);
                                 udpClient.Send(sendBytes, sendBytes.Length);
                             }

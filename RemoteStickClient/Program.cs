@@ -7,14 +7,11 @@ namespace RemoteStickClient
 {
     class Program
     {
-        //public static uint N_BUTTONS = 32;
-
         private static uint id = 1;
 
         static void Main(string[] args)
         {
             vJoy joystick = new vJoy();
-            vJoyInterfaceWrap.vJoy.JoystickState iReport = new vJoy.JoystickState();
 
             if (!joystick.vJoyEnabled())
             {
@@ -22,7 +19,7 @@ namespace RemoteStickClient
                 return;
             }
             else
-                Console.WriteLine("vJoy driver:\n\tVendor: {0}\n\tProduct :{1}\n\tVersion Number:{2}\n", joystick.GetvJoyManufacturerString(), joystick.GetvJoyProductString(), joystick.GetvJoySerialNumberString());
+                Console.WriteLine("vJoy driver:\n\tVendor: {0}\n\tProduct: {1}\n\tVersion Number: {2}\n", joystick.GetvJoyManufacturerString(), joystick.GetvJoyProductString(), joystick.GetvJoySerialNumberString());
 
             VjdStat status = joystick.GetVJDStatus(id);
             switch (status)
