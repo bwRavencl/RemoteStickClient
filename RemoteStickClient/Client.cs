@@ -13,7 +13,6 @@ namespace RemoteStickClient
 {
     class Client
     {
-        public static int DEFAULT_PORT = 28789;
         public static int DEFAULT_SERVER_TIMEOUT = 5000;
 
         public static int PROTOCOL_VERSION = 1;
@@ -33,30 +32,32 @@ namespace RemoteStickClient
 
         private vJoy joystick;
         private uint id;
+        private String host;
+        private int port;
+
         private ClientState clientState = ClientState.Connecting;
-        private volatile bool run = true;
-        private String address = "192.168.0.108";
-        private int port = DEFAULT_PORT;
-        private int serverTimeout = DEFAULT_SERVER_TIMEOUT;
+        private bool run = true;
         private int updateRate = -1;
         private InputSimulator inputSimulator = new InputSimulator();
         private VirtualKeyCode[] downKeyCodes = new VirtualKeyCode[0];
 
-        public Client(vJoy joystick, uint id)
+        public Client(vJoy joystick, uint id, String host, int port)
         {
             this.joystick = joystick;
             this.id = id;
+            this.host = host;
+            this.port = port;
         }
 
         public void Run()
         {
             UdpClient udpClient = new UdpClient(port);
-            udpClient.Client.ReceiveTimeout = serverTimeout;
+            udpClient.Client.ReceiveTimeout = DEFAULT_SERVER_TIMEOUT;
             try
             {
-                Console.WriteLine("Connecting to " + address + ":" + port + "...");
+                Console.WriteLine("\nConnecting to " + host + ":" + port + "...");
 
-                        udpClient.Connect(address, port);
+                udpClient.Connect(host, port);
 
 
                 IPEndPoint ipEndPoint = new IPEndPoint(IPAddress.Any, port);
@@ -121,6 +122,7 @@ namespace RemoteStickClient
                             {
                                 clientState = ClientState.Connected;
                                 Console.WriteLine("Entering State: Connected");
+                                Console.Title = Program.APPLICATION_NAME + " - " + host + ':' + port;
                             }
                             else
                                 run = false;
@@ -293,7 +295,8 @@ namespace RemoteStickClient
                 joystick.ResetAll();
                 udpClient.Close();
                 clientState = ClientState.Disconnected;
-                Console.WriteLine("Entering State: Disconnected");
+                Console.Title = Program.APPLICATION_NAME + " - Disconnected";
+                Console.WriteLine("Entering State: Disconnected\n");
             }
         }
     }

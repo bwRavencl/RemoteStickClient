@@ -1,16 +1,21 @@
 ﻿using System;
+using System.Net;
 using System.Threading;
-
 using vJoyInterfaceWrap;
 
 namespace RemoteStickClient
 {
     class Program
     {
+        public static String APPLICATION_NAME = "RemoteStick Client";
+        public static int DEFAULT_PORT = 28789;
+
         private static uint id = 1;
 
         static void Main(string[] args)
         {
+            Console.Title = APPLICATION_NAME + " - Disconnected";
+
             vJoy joystick = new vJoy();
 
             if (!joystick.vJoyEnabled())
@@ -88,13 +93,45 @@ namespace RemoteStickClient
             else
                 Console.WriteLine("Acquired vJoy device {0}.\n", id);
 
-            joystick.ResetVJD(id);
+            do
+            {
+                joystick.ResetVJD(id);
 
-            Client client = new Client(joystick, id);
-            Thread clientThread = new Thread(client.Run);
+                bool validAddress = false;
+                string host;
+                int port = DEFAULT_PORT;
+                do
+                {
+                    host = null;
+                    port = DEFAULT_PORT;
 
-            clientThread.Start();
-            Console.ReadKey();
+                    Console.Write("Server Address: ");
+                    string input = Console.ReadLine();
+
+                    int colonIndex = input.IndexOf(':');
+                    if (colonIndex != -1)
+                    {
+                        try
+                        {
+                            port = int.Parse(input.Substring(colonIndex + 1));
+
+                            if (port >= 1024 && port <= 65535)
+                                host = input.Substring(0, colonIndex);
+                        }
+                        catch (Exception e) { }
+                    }
+                    else
+                        host = input;
+
+                    if (Uri.CheckHostName(host) == UriHostNameType.Unknown)
+                        Console.WriteLine("\n'{0}' is not a valid server address. Please retry!", input);
+                    else
+                        validAddress = true;
+                } while (!validAddress);
+
+                Client client = new Client(joystick, id, host, port);
+                client.Run();
+            } while (true);
         }
     }
 }
