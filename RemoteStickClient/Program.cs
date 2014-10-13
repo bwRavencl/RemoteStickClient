@@ -14,6 +14,7 @@ namespace RemoteStickClient
     class Program
     {
         public static String APPLICATION_NAME = "RemoteStick Client";
+        public static String VERSION = "0.1";
         public static String CONSOLE_TITLE_DISCONNECTED = APPLICATION_NAME + " - Disconnected";
         public static uint JVOY_DEVICE_ID = 1;
         public static int DEFAULT_PORT = 28789;
@@ -40,6 +41,7 @@ namespace RemoteStickClient
                 input = args[0];
 
             Console.Title = CONSOLE_TITLE_DISCONNECTED;
+            Console.WriteLine("{0} {1} by Matteo Hausner\n", APPLICATION_NAME, VERSION);
 
             vJoy joystick = new vJoy();
 
