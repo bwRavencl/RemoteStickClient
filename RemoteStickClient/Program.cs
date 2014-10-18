@@ -64,7 +64,7 @@ namespace RemoteStickClient
 
             if (!joystick.vJoyEnabled())
             {
-                Console.WriteLine("vJoy driver not enabled: Failed Getting vJoy attributes.\n");
+                Console.WriteLine("vJoy driver not enabled: Failed getting vJoy attributes.\n");
                 return;
             }
             else
@@ -74,19 +74,19 @@ namespace RemoteStickClient
             switch (status)
             {
                 case VjdStat.VJD_STAT_OWN:
-                    Console.WriteLine("vJoy device {0} is already owned by this feeder\n", JVOY_DEVICE_ID);
+                    Console.WriteLine("vJoy device {0} is already owned by this feeder.\n", JVOY_DEVICE_ID);
                     break;
                 case VjdStat.VJD_STAT_FREE:
-                    Console.WriteLine("vJoy device {0} is available\n", JVOY_DEVICE_ID);
+                    Console.WriteLine("vJoy device {0} is available.\n", JVOY_DEVICE_ID);
                     break;
                 case VjdStat.VJD_STAT_BUSY:
-                    Console.WriteLine("vJoy device {0} is already owned by another feeder\nCannot continue\n", JVOY_DEVICE_ID);
+                    Console.WriteLine("vJoy device {0} is already owned by another feeder\nCannot continue.\n", JVOY_DEVICE_ID);
                     return;
                 case VjdStat.VJD_STAT_MISS:
-                    Console.WriteLine("vJoy device {0} is not installed or disabled\nCannot continue\n", JVOY_DEVICE_ID);
+                    Console.WriteLine("vJoy device {0} is not installed or disabled\nCannot continue.\n", JVOY_DEVICE_ID);
                     return;
                 default:
-                    Console.WriteLine("vJoy device {0} general error\nCannot continue\n", JVOY_DEVICE_ID);
+                    Console.WriteLine("vJoy device {0} general error\nCannot continue.\n", JVOY_DEVICE_ID);
                     return;
             };
 
