@@ -1,4 +1,21 @@
-﻿using System;
+﻿/* Copyright (C) 2014  Matteo Hausner
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -13,21 +30,21 @@ namespace RemoteStickClient
 {
     class Program
     {
-        public static String APPLICATION_NAME = "RemoteStick Client";
-        public static String VERSION = "0.1";
-        public static String CONSOLE_TITLE_DISCONNECTED = APPLICATION_NAME + " - Disconnected";
-        public static uint JVOY_DEVICE_ID = 1;
-        public static int DEFAULT_PORT = 28789;
-        public static int SERVER_TIMEOUT = 5000;
-        public static uint N_CONNECTION_RETRIES = 10;
+        private const String APPLICATION_NAME = "RemoteStick Client";
+        private const String VERSION = "0.1";
+        private const String CONSOLE_TITLE_DISCONNECTED = APPLICATION_NAME + " - Disconnected";
+        private const uint JVOY_DEVICE_ID = 1;
+        private const int DEFAULT_PORT = 28789;
+        private const int SERVER_TIMEOUT = 5000;
+        private const uint N_CONNECTION_RETRIES = 10;
 
-        public static int PROTOCOL_VERSION = 1;
-        public static char PROTOCOL_MESSAGE_DELIMITER = ':';
-        public static String PROTOCOL_MESSAGE_CLIENT_HELLO = "CLIENT_HELLO";
-        public static String PROTOCOL_MESSAGE_SERVER_HELLO = "SERVER_HELLO";
-        public static String PROTOCOL_MESSAGE_UPDATE = "UPDATE";
-        public static String PROTOCOL_MESSAGE_UPDATE_REQUEST_ALIVE = PROTOCOL_MESSAGE_UPDATE + "_ALIVE";
-        public static String PROTOCOL_MESSAGE_CLIENT_ALIVE = "CLIENT_ALIVE";
+        private const int PROTOCOL_VERSION = 1;
+        private const char PROTOCOL_MESSAGE_DELIMITER = ':';
+        private const String PROTOCOL_MESSAGE_CLIENT_HELLO = "CLIENT_HELLO";
+        private const String PROTOCOL_MESSAGE_SERVER_HELLO = "SERVER_HELLO";
+        private const String PROTOCOL_MESSAGE_UPDATE = "UPDATE";
+        private const String PROTOCOL_MESSAGE_UPDATE_REQUEST_ALIVE = PROTOCOL_MESSAGE_UPDATE + "_ALIVE";
+        private const String PROTOCOL_MESSAGE_CLIENT_ALIVE = "CLIENT_ALIVE";
 
         private enum ClientState
         {
@@ -138,7 +155,9 @@ namespace RemoteStickClient
                             if (port >= 1024 && port <= 65535)
                                 host = input.Substring(0, colonIndex);
                         }
-                        catch (Exception e) { }
+                        catch (Exception)
+                        {
+                        }
                     }
                     else
                         host = input;
@@ -214,7 +233,7 @@ namespace RemoteStickClient
                                         else
                                             retry--;
                                     }
-                                    catch (SocketException e)
+                                    catch (SocketException)
                                     {
                                         if (retry > 0)
                                         {
