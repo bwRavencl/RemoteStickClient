@@ -32,6 +32,7 @@ namespace RemoteStickClient
     {
         private const String APPLICATION_NAME = "RemoteStick Client";
         private const String VERSION = "0.1";
+
         private const String CONSOLE_TITLE_DISCONNECTED = APPLICATION_NAME + " - Disconnected";
         private const uint JVOY_DEVICE_ID = 1;
         private const int DEFAULT_PORT = 28789;
